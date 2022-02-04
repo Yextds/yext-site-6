@@ -1,0 +1,410 @@
+---
+{
+    "stream": {
+        "$id": "ds_store_locator",
+        "source": "knowledgeGraph",
+        "destination": "pages",
+      "filter": {
+        "entityTypes": [
+          "ce_mandcoLocation"
+        ]
+      },
+      "fields": [
+        "id",
+        "name",
+        "slug",
+        "description",
+        "c_locations.name",
+        "c_locations.mainPhone",
+        "c_locations.slug",
+        "c_locations.photoGallery",
+        "c_locations.address",
+        "c_locations.hours",
+        "c_locations.featuredMessage",
+		"c_locations.yextDisplayCoordinate",
+		"c_locations.c_departments.name",
+		"c_locations.c_departments.id"
+      ],
+      "localization": {
+          "locales": ["en"]
+      }
+    },
+    "urlFormat": "store-locator.html"
+}
+---
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Store Locator</title>
+      <meta name="description" content="Store Locator {{global.name}}">
+      {{>head}}
+      {{!-- 
+      <link href="https://unpkg.com/tailwindcss/dist/tailwind.min.css" rel="stylesheet">
+      --}}
+      <!--Replace with your tailwind.css once created-->
+      <link href="https://fonts.googleapis.com/css?family=Work+Sans:200,400&display=swap" rel="stylesheet">
+   </head>
+   <div class="container mx-auto px-4">
+   <body>
+      {{>navbar}}
+      <section class="bg-clientbg">
+         <div class="flex flex-wrap">
+            <div class="w-full xl:px-20 xl:py-16 px-10 py-10 flex flex-wrap">
+               <h2 class="text-3xl lg:text-4xl md:text-3xl font-semibold text-textblack mb-10 text-center w-full">Store Locator</h2>
+            </div>
+            <div class="w-full flex flex-wrap">
+               <div class="">Enter a postcode, town or shop name to find a store near you:</div>
+               <div class="input-group relative flex items-stretch mx-5 mb-4">    							
+                  <input id="search_key" name="search_key" type="text" class="search_key form-control relative flex-auto min-w-0 block w-full px-3 py-1.5 pl-8 leading-7 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:outline-none border-r-0" placeholder="Eg. EC2A 1RS" aria-label="Eg. EC2A 1RS" aria-describedby="button-addon2">
+                  <button class="btn leading-7 inline-block px-4 py-1.5 text-primary bg-white focus:outline-none focus:ring-0 transition duration-150 ease-in-out flex items-center border border-solid border-gray-300 border-l-0" type="button" id="button-addon2">
+                  Go
+                  </button>
+               </div>
+            </div>
+            <div class="w-full flex flex-wrap">
+               <div class="department-list" >
+               </div>
+            </div>
+            <div class="w-full flex flex-wrap">
+               <div class="w-full flex flex-wrap">
+                  <div id="leftside" class="w-full md:w-1/4 xl:py-0 py-5">
+                     <div id="leftside-inner" class="overflow-y-auto h-[542px] w-full">
+                        {{#each c_locations}}											
+                        <div data-slug={{slug}} data-name='{{name}}' data-lat={{yextDisplayCoordinate.latitude}} data-lng={{yextDisplayCoordinate.longitude}} class="list-group-item w-full px-5 divide-y-2 divide-gray-100 border-b mb-4 border-solid border-gray-300">
+							<p>{{@index+1}}</p>
+						   <h4 class="storelocation-name text-base font-medium text-textblack mb-1">{{name}} - {{address.city}}</h4>
+                           <div class="address text-sm font-light text-textblack leading-5 mb-1">
+                              {{address.line1}},
+                              {{address.city}}, {{address.region}} {{address.postalCode}}, {{address.countryCode}}<br/> {{mainPhone}}
+                           </div>
+                          <div class="storelocation-openCloseTime" >
+							<ul>	
+                            {{#each hours}}
+							  <li><strong>{{@key}}</strong> 
+                              {{#if isClosed}}
+								Closed
+                              {{else}}
+                              {{#each openIntervals}}
+								{{start}} to {{end}}
+                              {{/each}}	
+                              {{/if}}
+								</li>
+                            {{/each}}
+							<ul>	
+                           </div>
+                           <div class="storelocation-categories" >
+                              <p>Departments available in store</p><a href="javascript:void(0);" class="icons_small right close">+</a>
+                              <ul class="storelocation-available-categories" style="display:none;">
+                                 {{#each c_departments}}
+                                 <li class="storelocation-category" data-id={{id}} >{{name}}</li>
+                                 {{/each}}									
+                              </ul>
+                           </div>
+                        </div>
+                        {{/each}}
+                     </div>
+                  </div>
+                  <div class="w-full md:w-3/4 xl:px-0 xl:py-0 px-5 py-5">
+                     <div class="w-full xl:px-0 xl:py-0 px-5 py-5 h-[600px]" id="map_canvas"></div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>		
+         <script src="https://maps.googleapis.com/maps/api/js?key=&sensor=false&libraries=places"></script> 
+         <script>
+			
+			
+			
+			function load_map(Mapping, $, undefined) {
+				var self = this;
+				Initialize();
+				$(".close").click(function () { // alert('Hello');
+					$(this).parent().find(".storelocation-available-categories").toggle();
+				});
+			}
+
+			(load_map)(window.Mapping = window.Mapping || {}, jQuery);
+
+			$(function () {
+			
+				
+				getDepartments();
+
+				$("#button-addon2").click(function () {
+					getStoreLocations();					
+				});
+						
+			});
+			
+			function Initialize() {
+
+					var lat = 53.3943355;
+					var lng = -2.0632706;
+
+					/*$('.list-group-item').each(function () {
+						lat = $(this).data('lat');
+						lng = $(this).data('lng');
+					});*/
+
+
+					var myOptions = {
+						zoom: 6,
+						center: new google.maps.LatLng(lat, lng),
+						mapTypeId: google.maps.MapTypeId.ROADMAP
+					};
+
+					self.map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+					self.markers = [];
+					self.infoWindow = new google.maps.InfoWindow();
+					// var bounds = new google.maps.LatLngBounds();
+
+					var count = 1;
+					$('.list-group-item').each(function () {
+						
+						var $this = $(this);
+						var pos = new google.maps.LatLng($this.data('lat'), $this.data('lng'));
+						var marker = new google.maps.Marker({
+							position: pos,
+							map: self.map,
+							label: {text: count.toString(), color: "white"},
+							icon: "/images/googlemap-marker.png"
+						});
+						count++;
+						
+						  var ce_departments = [];
+						  $this.find('.storelocation-category').each(function () {
+							 ce_departments.push($(this).data("id"));
+						  });
+						
+						marker.category = ce_departments;
+						self.markers.push(marker);
+
+						var location_name = $this.data('name');						
+						var storelocationName = $this.find('.storelocation-name').html();
+						var address = $this.find('.address').html();
+						var openCloseTime = $this.find('.storelocation-openCloseTime').html();
+						
+						
+						var markerContent = '<div class="markerContent">';
+						
+							markerContent += '<div class="nameData">'+storelocationName+'</div>';
+							markerContent += '<div class="addressData">'+address+'</div>';
+							markerContent += '<div class="openCloseTimeData">'+openCloseTime+'</div>';
+							
+						    markerContent += '</div>';
+
+						$this.find('.storelocation-name').click(function () {
+							self.map.panTo(pos);
+							self.map.setZoom(16);
+							self.map.setCenter(marker.getPosition());
+							self.infoWindow.setContent(markerContent);
+							self.infoWindow.open(self.map, marker);
+							$this.siblings().removeClass('active');
+							$this.addClass('active');
+						});
+
+						marker.addListener("click", () => {
+							self.infoWindow.setContent(markerContent);
+							self.infoWindow.open(self.map, marker);
+						});
+
+
+					});
+			}
+			
+			function getStoreLocations(){
+				var varData = {
+						api_key: 'b262ae7768eec3bfa53bfca6d48e4000',
+						v: '20211229',
+						limit:40,
+						entityTypes: 'location'
+					};
+
+					var searchText = $('.search_key').val();
+					
+					var ce_departments = [];
+					$('.checkbox_departments').each(function () {							 
+						  if ($(this).is(":checked")) {
+							ce_departments.push($(this).val());
+						  }
+					});
+					
+					
+					let filterParameters = {};
+					let filterAnd = {};
+					let filterOr = {};
+					if (searchText) {
+							filterOr = {"$or": [
+									  {"address.line1": {"$contains": searchText}},
+									  {"address.city": {"$contains": searchText}},
+									  {"address.region": {"$contains": searchText}},
+									  {"address.countryCode": {"$contains": searchText}},
+									  {"address.postalCode": {"$contains": searchText}},
+									  {"name": {"$contains": searchText}}
+									]
+							 };
+							 
+					}
+					
+					
+				    if(ce_departments){ // alert(ce_departments.length+'ddd');
+						filterAnd = {"$and":[{"savedFilters":{"$eq":"157574"},"c_departments":{"$in": ce_departments}}]};
+					}else{
+						filterAnd = {"$and":[{"savedFilters":{"$eq":"157574"}}]};
+					}
+					
+					filterParameters = {...filterOr,...filterAnd};
+					
+					// console.log(obj);					
+					// console.log(JSON.stringify(filterParameters,2));
+					
+					var filterpar = JSON.stringify(filterParameters);
+					var filter = encodeURI(filterpar);
+					
+					var url = "https://liveapi-sandbox.yext.com/v2/accounts/me/entities?filter=" + filter;
+
+					$.ajax({
+						url: url,
+						type: "get", //send it through get method
+						data: varData,
+						success: function (result) { // alert();
+
+							if (!result.errors) {
+
+								if (result.response.count > 0) {
+
+									var html = '';
+									$.each(result.response.entities, function (index, entity) {
+									
+										
+									html += '<div  data-name="' + entity.name + '" data-lat="' + entity.yextDisplayCoordinate.latitude + '" data-lng="' + entity.yextDisplayCoordinate.longitude + '" class="list-group-item w-full px-5 divide-y-2 divide-gray-100 border-b mb-4 border-solid border-gray-300">';
+										html += '<p>'+(index+1)+'</p>';
+										html += '<h4 class="storelocation-name text-base font-medium text-textblack mb-1">' + entity.name + ' - ' + entity.address.city + '</h4>';
+										html += '<div class="address text-sm font-light text-textblack leading-5 mb-1">';
+											html += entity.address.line1 + ', ' + entity.address.city + ', ' + entity.address.region + ', ' + entity.address.postalCode + ', ' + entity.address.countryCode;
+										html += '</div>';
+											html += '<div class="storelocation-openCloseTime">';
+												//if(entity.hours.length > 0){
+													html += '<ul>';
+														$.each(entity.hours, function (index, hour) {											
+															html += '<li><strong>'+index+'</strong>';
+																$.each(hour.openIntervals, function (op, openInterval) {
+																	html += openInterval.start+' to '+openInterval.end;
+																});
+															html += '</li>'; 
+														});
+													html += '</ul>';
+												//}
+											html += '</ul>';
+											html += '</div>';
+
+											html += '<div class="storelocation-categories">';
+											html += '<p>Departments available in store</p><a href="javascript:void(0);" class="icons_small right close">+</a>';
+												if(entity.c_departments.length > 0){
+													html += '<ul class="storelocation-available-categories" style="display:none;" >';	
+														$.each(entity.c_departments, function (cd,value) {
+															
+															$('.department-list-item').each(function () {							 
+																  if (value == $(this).data("id")) {
+																	html += '<li>'+$(this).data("name")+'</li>'; 
+																  }
+															});
+															
+															
+														});
+													html += '</ul>';
+												}
+											html += '</div>';
+									html += '</div>';
+
+
+									});
+									$("#leftside-inner").html(html);
+									(load_map)(window.Mapping = window.Mapping || {}, jQuery);
+									
+										
+
+								} else {
+									$("#leftside-inner").html('<p class="text-base font-medium text-textblack mb-8">Location not found.</p>');
+								}
+
+							} else {
+								$("#leftside-inner").html('<p class="text-base font-medium text-textblack mb-8">Location not found.</p>');
+							}
+
+
+						},
+						error: function (xhr) {
+							$("#leftside-inner").html('<p class="text-base font-medium text-textblack mb-8">Location not found.</p>');
+						}
+					});
+			}
+			
+
+			function convertToSlug(Text) {
+				return Text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+			}
+			
+
+			function getDepartments() {
+
+				var url = "https://liveapi-sandbox.yext.com/v2/accounts/me/entities";
+
+				var varData = {
+					api_key: 'b262ae7768eec3bfa53bfca6d48e4000',
+					v: '20211229',
+					entityTypes: 'ce_departments'
+				};
+
+				$.ajax({
+					url: url,
+					type: "get", //send it through get method
+					data: varData,
+					success: function (result) { // alert();
+
+						if (!result.errors) {
+
+							if (result.response.count > 0) {
+
+								var html = '';
+								$.each(result.response.entities, function (index, entity) {
+
+									html += '<li class="department-list-item flex " data-name="' + entity.name + '" data-id="' + entity.meta.id + '" >';
+									html += '<div class="form-check"><input class="checkbox_departments form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer" type="checkbox" name="c_departments[]" value="' + entity.meta.id + '">';
+									html += '<label class="form-check-label inline-block text-gray-800" for="' + entity.name + '"> ' + entity.name + '</label>';
+									html += '</li>';
+
+								});
+
+								$(".department-list").html(html);
+								
+								$(".checkbox_departments").change(function() {									
+									getStoreLocations();
+								});
+
+							} else {
+
+							}
+
+						} else {
+
+						}
+
+
+					},
+					error: function (xhr) {
+
+					}
+				});
+
+			}
+            
+         </script>
+      </section>
+      {{>footer}}
+   </body>
+</html>

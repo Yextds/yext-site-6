@@ -41,7 +41,18 @@ module.exports = {
               {
                 loader: 'file-loader',
                 options: {
-                  name: '[name].[ext]'
+                  name: 'images/[name].[ext]'
+                }
+              }
+            ]
+          },
+          {
+            test: /\.(webp|woff|woff2|eot|ttf|svg)$/,
+            use: [
+              {
+                loader: 'file-loader',
+                options: {
+                  name: 'fonts/[name].[ext]'
                 }
               }
             ]

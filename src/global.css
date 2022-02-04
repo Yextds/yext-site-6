@@ -3,7 +3,63 @@
 @tailwind utilities;
 
 
+@font-face {
+    font-family: 'Futura Std';
+    src: url('fonts/FuturaStd-Condensed.woff2') format('woff2'),
+        url('fonts/FuturaStd-Condensed.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
 
+@font-face {
+    font-family: 'Futura Std';
+    src: url('fonts/FuturaStd-Book.woff2') format('woff2'),
+        url('fonts/FuturaStd-Book.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
 
+@font-face {
+    font-family: 'Futura Std';
+    src: url('fonts/FuturaStd-Heavy.woff2') format('woff2'),
+        url('fonts/FuturaStd-Heavy.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
 
+@font-face {
+    font-family: 'Futura Std';
+    src: url('fonts/FuturaStd-Light.woff2') format('woff2'),
+        url('fonts/FuturaStd-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
 
+@font-face {
+    font-family: 'Futura Std';
+    src: url('fonts/FuturaStd-Medium.woff2') format('woff2'),
+        url('fonts/FuturaStd-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+.form-check label:before{content:''; position: absolute; top: 0; left: 0; width: 16px; height: 16px; background-color: #fff; border: 1px solid #d4ccc3;}
+.form-check input:checked + label:after{content: '';
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 4px;
+    margin-top: -7px;
+    border: none;
+    width: 16px;
+    height: 11px;
+    background: url(images/sprite-account.png) 0 -245px no-repeat;}
+
+.marker-no{background-image: url(images/googlemap-marker.png);}
+.list-group-item.active{background-color: #f9f7f5;}
+.storelocation-available-categories{display:none;}
